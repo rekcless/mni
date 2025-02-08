@@ -3,170 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GreenBlog Rentals</title>
+    <title>Elegant Green Blog</title>
     <style>
-        /* Reset CSS */
+        /* Reset dan Variabel Warna */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif;
         }
 
-        /* Warna Custom */
         :root {
-            --primary-color: #2ecc71;
-            --secondary-color: #ffffff;
-            --accent-color: #27ae60;
+            --primary: #1B5E20;
+            --secondary: #388E3C;
+            --accent: #4CAF50;
+            --light: #F1F8E9;
+            --dark: #0D1F0E;
         }
 
         body {
-            background-color: #f5f5f5;
-            line-height: 1.6;
+            background: linear-gradient(45deg, var(--light) 0%, #ffffff 100%);
+            color: var(--dark);
         }
 
         /* Header */
-        header {
-            background-color: var(--secondary-color);
-            padding: 1rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
+        .main-header {
+            background: var(--primary);
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
         }
 
-        nav {
+        .header-content {
             max-width: 1200px;
             margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            z-index: 1;
         }
 
-        .logo {
-            color: var(--primary-color);
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-decoration: none;
+        .header-content h1 {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* Konten Utama */
-        .container {
-            max-width: 1200px;
+        /* Efek Emboss */
+        .emboss-effect {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 
+                8px 8px 16px #d1d9d6,
+                -8px -8px 16px #ffffff;
             margin: 2rem auto;
-            padding: 0 1rem;
+            transition: transform 0.3s ease;
         }
 
-        .blog-grid {
+        .emboss-effect:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Grid Artikel */
+        .blog-container {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .article-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
         }
 
-        .blog-card {
-            background: var(--secondary-color);
-            border-radius: 10px;
+        /* Kartu Artikel */
+        .article-card {
+            background: white;
+            border-radius: 15px;
             padding: 1.5rem;
-            transition: transform 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .blog-card:hover {
-            transform: translateY(-5px);
+        .article-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 15px;
+            box-shadow: 
+                6px 6px 12px #c8d6c3,
+                -6px -6px 12px #ffffff;
+            z-index: -1;
         }
 
-        .blog-image {
+        .article-image {
             width: 100%;
             height: 200px;
             object-fit: cover;
-            border-radius: 5px;
+            border-radius: 10px;
+            margin-bottom: 1rem;
         }
 
-        .blog-title {
-            color: var(--primary-color);
-            margin: 1rem 0;
-            font-size: 1.2rem;
+        .article-date {
+            color: var(--accent);
+            font-size: 0.9rem;
         }
 
-        .price-tag {
-            background-color: var(--primary-color);
-            color: var(--secondary-color);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            display: inline-block;
+        .article-title {
+            color: var(--primary);
             margin: 1rem 0;
+            font-size: 1.4rem;
         }
 
         /* Footer */
-        footer {
-            background-color: var(--primary-color);
-            color: var(--secondary-color);
+        .main-footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 0;
+            margin-top: 5rem;
             text-align: center;
-            padding: 2rem 0;
-            margin-top: 3rem;
         }
 
         .credit {
             font-size: 0.9rem;
-            opacity: 0.9;
+            opacity: 0.8;
+            margin-top: 1rem;
         }
 
         /* Tombol */
-        .btn {
-            background-color: var(--accent-color);
+        .read-more {
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
             color: white;
             padding: 0.8rem 1.5rem;
             border: none;
-            border-radius: 5px;
+            border-radius: 25px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            text-decoration: none;
+            margin-top: 1rem;
             display: inline-block;
+            text-decoration: none;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.1);
         }
 
-        .btn:hover {
-            background-color: #219a52;
+        /* Navigasi */
+        .main-nav {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
         }
     </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="#" class="logo">GreenBlog Rentals</a>
-            <div>
-                <a href="#blog" class="btn">Lihat Blog</a>
-            </div>
-        </nav>
+    <header class="main-header">
+        <div class="header-content">
+            <h1>🌿 Green Thoughts</h1>
+            <nav class="main-nav">
+                <a href="#" class="nav-link">Beranda</a>
+                <a href="#" class="nav-link">Artikel</a>
+                <a href="#" class="nav-link">Tentang</a>
+                <a href="#" class="nav-link">Kontak</a>
+            </nav>
+        </div>
     </header>
 
-    <main class="container">
-        <h2 style="text-align: center; margin-bottom: 2rem; color: var(--primary-color);">Blog Tersedia</h2>
-        <div class="blog-grid" id="blog">
-            <!-- Blog 1 -->
-            <div class="blog-card">
-                <img src="https://via.placeholder.com/300x200" alt="Blog Preview" class="blog-image">
-                <h3 class="blog-title">Blog Travel & Adventure</h3>
-                <p>Blog profesional dengan desain responsif, perfect untuk content creator traveling.</p>
-                <div class="price-tag">Rp 299.000/bulan</div>
-                <a href="#" class="btn">Sewa Sekarang</a>
-            </div>
+    <main class="blog-container">
+        <div class="article-grid">
+            <!-- Artikel 1 -->
+            <article class="article-card emboss-effect">
+                <img src="https://source.unsplash.com/random/800x600?nature" alt="Gambar Artikel" class="article-image">
+                <span class="article-date">15 Juli 2024</span>
+                <h2 class="article-title">Keindahan Alam dan Konservasi</h2>
+                <p>Menjelajahi keindahan alam Indonesia dan upaya pelestarian lingkungan...</p>
+                <a href="#" class="read-more">Baca Selengkapnya →</a>
+            </article>
 
-            <!-- Blog 2 -->
-            <div class="blog-card">
-                <img src="https://via.placeholder.com/300x200" alt="Blog Preview" class="blog-image">
-                <h3 class="blog-title">Blog Makanan & Kuliner</h3>
-                <p>Template blog modern dengan fitur resep dan gallery makanan.</p>
-                <div class="price-tag">Rp 349.000/bulan</div>
-                <a href="#" class="btn">Sewa Sekarang</a>
-            </div>
-
-            <!-- Tambahkan blog lainnya di sini -->
+            <!-- Artikel 2 -->
+            <article class="article-card emboss-effect">
+                <img src="https://source.unsplash.com/random/800x600?forest" alt="Gambar Artikel" class="article-image">
+                <span class="article-date">14 Juli 2024</span>
+                <h2 class="article-title">Teknologi Hijau Masa Depan</h2>
+                <p>Inovasi terbaru dalam teknologi ramah lingkungan yang akan mengubah dunia...</p>
+                <a href="#" class="read-more">Baca Selengkapnya →</a>
+            </article>
         </div>
     </main>
 
-    <footer>
+    <footer class="main-footer">
+        <p>© 2024 Green Thoughts Blog</p>
         <p class="credit">
-            Design by [Nama Anda]<br>
-            Dikembangkan dengan ❤️ menggunakan HTML & CSS
+            Designed with ♥ by [Nama Anda]<br>
+            CSS Effects by CreativeMind
         </p>
     </footer>
 </body>

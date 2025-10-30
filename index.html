@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengeluaran Hari Ini</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Reset & Font */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            /* Menggunakan Font Nunito */
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                Helvetica, Arial, sans-serif;
+            background-color: #F5EFE6; /* Krem */
+            color: #333333; /* Abu-abu tua untuk teks */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Palet Warna */
+        :root {
+            --hijau-tua: #588157;
+            --hijau-muda: #A3B18A;
+            --krem: #F5EFE6;
+            --putih-gading: #FDFDF0;
+            --abu-abu: #DAD7CD;
+            --abu-teks: #495057;
+            --merah-hapus: #E53E3E;
+        }
+
+        /* Container Utama */
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--putih-gading);
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--hijau-tua);
+            color: var(--krem);
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        #tanggal-hari-ini {
+            font-size: 1.1rem;
+            font-weight: 300;
+            color: var(--krem);
+            opacity: 0.9;
+        }
+
+        /* Main Content */
+        main {
+            padding: 30px;
+        }
+
+        /* Box Total Container (Untuk Total Bulanan & Harian) */
+        .total-container {
+            display: flex;
+            gap: 15px; /* Jarak antara 2 kotak total */
+            margin-bottom: 25px;
+        }
+        
+        /* Box Total */
+        .total-box {
+            flex: 1; /* Agar kedua kotak membagi ruang sama rata */
+            background-color: var(--hijau-muda);
+            color: var(--putih-gading);
+            padding: 20px 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(163, 177, 138, 0.4);
+            transition: transform 0.2s ease-out;
+        }
+
+        /* Perbedaan warna untuk Total Harian */
+        #total-harian-box {
+            background-color: #799d78; /* Hijau yang lebih gelap */
+        }
+        
+        .total-box:hover {
+            transform: translateY(-2px);
+        }
+
+        .total-box h2 {
+            font-size: 0.9rem; /* Dikecilkan sedikit agar muat */
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .total-box span {
+            font-size: 1.5rem; /* Dikecilkan agar muat */
+            font-weight: 700;
+            display: block; /* Agar angka di baris baru */
+        }
+        
+        /* Media Query untuk Mobile */
+        @media (max-width: 480px) {
+            .total-container {
+                flex-direction: column; /* Ubah jadi tumpukan di HP */
+            }
+            .total-box span {
+                font-size: 2rem; /* Di HP, angkanya boleh besar lagi */
+            }
+        }
+
+
+        /* --- Styling Lain (Form, List, Delete Button) sama seperti sebelumnya --- */
+
+        /* Form Input */
+        #form-pengeluaran {
+            margin-bottom: 30px;
+        }
+
+        .form-grup {
+            margin-bottom: 15px;
+        }
+
+        .form-grup label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--abu-teks);
+        }
+
+        .form-grup input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--abu-abu);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Nunito', sans-serif;
+            background-color: #FFF;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-grup input:focus {
+            outline: none;
+            border-color: var(--hijau-muda);
+            box-shadow: 0 0 0 3px rgba(163, 177, 138, 0.3);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--hijau-tua);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #4a6f4a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(88, 129, 87, 0.3);
+        }
+
+        /* Daftar Pengeluaran */
+        .list-pengeluaran h3 {
+            font-size: 1.3rem;
+            color: var(--abu-teks);
+            border-bottom: 2px solid var(--abu-abu);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        #daftar-list {
+            list-style-type: none;
+        }
+
+        /* Animasi Fade-in untuk item baru */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 10px;
+            border-bottom: 1px solid var(--abu-abu);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            flex-grow: 1;
+        }
+
+        .list-item .deskripsi {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+
+        .list-item .jumlah {
+            font-weight: 500;
+            color: var(--hijau-tua);
+            font-size: 0.9rem;
+        }
+
+        #pesan-kosong {
+            text-align: center;
+            padding: 20px;
+            color: var(--abu-teks);
+            font-style: italic;
+        }
+        
+        /* Tombol Hapus */
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+            margin-left: 10px;
+        }
+        
+        .delete-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--abu-teks);
+            transition: stroke 0.2s ease;
+        }
+        
+        .delete-btn:hover {
+            background-color: #FEEEEE;
+        }
+        
+        .delete-btn:hover svg {
+            stroke: var(--merah-hapus);
+        }
+
+        /* ========================================
+        --- CSS KHUSUS PRINT ---
+        ========================================
+        */
+        @media print {
+            /* Sembunyikan semua yang tidak perlu */
+            #form-pengeluaran,
+            .delete-btn {
+                display: none !important;
+            }
+
+            /* Atur ulang layout utama untuk print */
+            body {
+                padding: 0;
+                margin: 0;
+                background-color: #fff !important;
+                color: #000 !important;
+            }
+
+            .container {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 20px;
+            }
+
+            main {
+                padding: 10px !important;
+            }
+            
+            .total-container {
+                flex-direction: column; /* Diprint jadi ke bawah */
+                gap: 5px;
+                margin-bottom: 15px;
+            }
+
+            /* Ubah header jadi hitam-putih & simpel */
+            header {
+                background-color: #fff !important;
+                color: #000 !important;
+                text-align: left;
+                padding: 10px 0;
+                border-bottom: 2px solid #000;
+            }
+
+            /* Ubah box total jadi lebih simpel untuk print */
+            .total-box {
+                background-color: #eee !important; /* Abu-abu tipis */
+                color: #000 !important;
+                box-shadow: none !important;
+                padding: 15px;
+                text-align: left;
+                border-radius: 0;
+                
+                /* Layout inline untuk print */
+                display: flex; 
+                justify-content: space-between;
+            }
+            
+            .total-box h2 {
+                display: inline;
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin: 0;
+            }
+
+            .total-box span {
+                color: #000 !important;
+                font-size: 1.1rem !important;
+                font-weight: 700;
+                display: inline !important;
+            }
+
+            /* Pastikan teks list berwarna hitam */
+            .list-pengeluaran h3 {
+                margin-top: 25px;
+                color: #000;
+            }
+            
+            .list-item {
+                animation: none !important;
+                padding: 10px 0;
+            }
+            
+            .list-item .deskripsi {
+                color: #000;
+                font-size: 1.1rem;
+            }
+            
+            .list-item .jumlah {
+                color: #000 !important;
+                font-weight: 600;
+                font-size: 1.1rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Pengeluaran Hari Ini</h1>
+            <p id="tanggal-hari-ini"></p>
+        </header>
+
+        <main>
+            <div class="total-container">
+                <div class="total-box" id="total-bulanan-box">
+                    <h2>Total Bulan Ini</h2>
+                    <span id="total-pengeluaran-bulanan">Rp 0</span>
+                </div>
+                
+                <div class="total-box" id="total-harian-box">
+                    <h2>Total Hari Ini</h2>
+                    <span id="total-pengeluaran-harian">Rp 0</span>
+                </div>
+            </div>
+
+            <form id="form-pengeluaran">
+                <div class="form-grup">
+                    <label for="deskripsi">Deskripsi Pengeluaran</label>
+                    <input type="text" id="deskripsi" placeholder="Cth: Kopi susu" required>
+                </div>
+                <div class="form-grup">
+                    <label for="jumlah">Jumlah (Rp)</label>
+                    <input type="number" id="jumlah" placeholder="Cth: 25000" min="0" required>
+                </div>
+                <button type="submit">Tambah</button>
+            </form>
+
+            <section class="list-pengeluaran">
+                <h3>Daftar Pengeluaran Hari Ini</h3>
+                <ul id="daftar-list">
+                    </ul>
+                <p id="pesan-kosong">Belum ada pengeluaran hari ini.</p>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tanggalEl = document.getElementById('tanggal-hari-ini');
+            const form = document.getElementById('form-pengeluaran');
+            const inputDeskripsi = document.getElementById('deskripsi');
+            const inputJumlah = document.getElementById('jumlah');
+            // ID elemen baru
+            const totalBulananEl = document.getElementById('total-pengeluaran-bulanan');
+            const totalHarianEl = document.getElementById('total-pengeluaran-harian');
+
+            const daftarListEl = document.getElementById('daftar-list');
+            const pesanKosongEl = document.getElementById('pesan-kosong');
+
+            const hariIni = new Date();
+            const todayKey = hariIni.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+            const currentMonthKey = todayKey.substring(0, 7); // Format: YYYY-MM
+
+            // Kunci utama penyimpanan data untuk SEMUA tanggal
+            const MASTER_STORAGE_KEY = 'all_monthly_expenses_v3';
+
+            // --- Atur Tanggal Hari Ini ---
+            const opsiTanggal = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Jakarta' };
+            tanggalEl.textContent = hariIni.toLocaleDateString('id-ID', opsiTanggal);
+
+            // --- Fungsi Pembantu LocalStorage ---
+            function getAllExpenses() {
+                // Mengambil SEMUA data pengeluaran (semua bulan)
+                return JSON.parse(localStorage.getItem(MASTER_STORAGE_KEY)) || {};
+            }
+
+            function saveAllExpenses(data) {
+                localStorage.setItem(MASTER_STORAGE_KEY, JSON.stringify(data));
+            }
+
+            // --- Fungsi untuk Format Mata Uang (Rupiah) ---
+            function formatRupiah(angka) {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).format(angka);
+            }
+
+            // --- Fungsi untuk Update Kedua Total (Bulanan & Harian) ---
+            function updateTotal() {
+                const allData = getAllExpenses();
+                let cumulativeMonthlyTotal = 0;
+                let dailyTotal = 0;
+                
+                // 1. Hitung Total Bulanan
+                for (const dateKey in allData) {
+                    if (dateKey.startsWith(currentMonthKey)) {
+                        allData[dateKey].forEach(item => {
+                            cumulativeMonthlyTotal += item.jumlah;
+                        });
+                    }
+                }
+                
+                // 2. Hitung Total Harian (Hari Ini)
+                const pengeluaranHariIni = allData[todayKey] || [];
+                dailyTotal = pengeluaranHariIni.reduce((acc, item) => acc + item.jumlah, 0);
+
+                // Tampilkan total
+                totalBulananEl.textContent = formatRupiah(cumulativeMonthlyTotal);
+                totalHarianEl.textContent = formatRupiah(dailyTotal);
+            }
+
+            // --- Fungsi untuk Menampilkan Data HARI INI ke List ---
+            function renderPengeluaran() {
+                const allData = getAllExpenses();
+                const pengeluaranHariIni = allData[todayKey] || []; // Ambil data spesifik hari ini
+                
+                daftarListEl.innerHTML = '';
+
+                if (pengeluaranHariIni.length === 0) {
+                    pesanKosongEl.style.display = 'block';
+                } else {
+                    pesanKosongEl.style.display = 'none';
+                    pengeluaranHariIni.forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'list-item';
+                        
+                        li.innerHTML = `
+                            <div class="item-info">
+                                <span class="deskripsi">${item.deskripsi}</span>
+                                <span class="jumlah">${formatRupiah(item.jumlah)}</span>
+                            </div>
+                            <button class="delete-btn" data-id="${item.id}" data-date="${todayKey}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        `;
+                        daftarListEl.appendChild(li);
+                    });
+                }
+                
+                updateTotal();
+            }
+
+            // --- Event Listener untuk Form Submit (Menambah Pengeluaran) ---
+            form.addEventListener('submit', (e) => {
+                e.preventDefault(); 
+                const deskripsi = inputDeskripsi.value;
+                const jumlah = parseInt(inputJumlah.value);
+
+                if (deskripsi.trim() === '' || isNaN(jumlah) || jumlah <= 0) {
+                    alert('Isi deskripsi dan jumlah dengan benar!');
+                    return;
+                }
+
+                const allData = getAllExpenses();
+
+                if (!allData[todayKey]) {
+                    allData[todayKey] = [];
+                }
+
+                const itemBaru = {
+                    id: Date.now(),
+                    deskripsi: deskripsi,
+                    jumlah: jumlah
+                };
+                allData[todayKey].push(itemBaru);
+
+                saveAllExpenses(allData);
+                renderPengeluaran();
+
+                inputDeskripsi.value = '';
+                inputJumlah.value = '';
+                inputDeskripsi.focus();
+            });
+            
+            // --- EVENT LISTENER UNTUK HAPUS ITEM ---
+            daftarListEl.addEventListener('click', (e) => {
+                const deleteButton = e.target.closest('.delete-btn');
+                
+                if (deleteButton) {
+                    const idToDelete = parseInt(deleteButton.dataset.id);
+                    const allData = getAllExpenses();
+
+                    allData[todayKey] = allData[todayKey].filter(item => item.id !== idToDelete);
+                    
+                    if (allData[todayKey].length === 0) {
+                        delete allData[todayKey];
+                    }
+
+                    saveAllExpenses(allData);
+                    renderPengeluaran();
+                }
+            });
+
+            // --- Tampilkan data saat pertama kali load ---
+            renderPengeluaran();
+        });
+    </script>
+
+</body>
+</html>

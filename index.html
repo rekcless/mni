@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -6,40 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dompet Bulanan</title>
   <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js" defer></script>
 </head>
 <body>
   <div class="container">
     <h1>💸 Dompet Bulanan</h1>
 
+    <!-- LOGIN SECTION -->
     <div id="user-section">
       <button id="loginBtn" class="btn">Login dengan Google</button>
       <button id="logoutBtn" class="btn hidden">Logout</button>
       <p id="userName"></p>
     </div>
 
-    <div id="filter-section" class="hidden">
-      <label for="bulan">Pilih Bulan:</label>
-      <select id="bulan"></select>
-    </div>
+    <!-- FORM TRANSAKSI -->
+    <form id="transaction-form" class="hidden fade-in">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="keterangan">📝 Keterangan</label>
+          <input type="text" id="keterangan" placeholder="Contoh: Gaji, Belanja..." required>
+        </div>
 
-    <form id="transaction-form" class="hidden">
-      <input type="text" id="keterangan" placeholder="Keterangan..." required>
-      <input type="number" id="jumlah" placeholder="Jumlah (Rp)" required>
-      <select id="tipe">
-        <option value="pemasukan">Pemasukan</option>
-        <option value="pengeluaran">Pengeluaran</option>
-      </select>
-      <button type="submit" class="btn-green">Tambah</button>
+        <div class="form-group">
+          <label for="jumlah">💰 Jumlah (Rp)</label>
+          <input type="number" id="jumlah" placeholder="Masukkan nominal..." required>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="tipe">📂 Jenis Transaksi</label>
+          <select id="tipe">
+            <option value="pemasukan">Pemasukan</option>
+            <option value="pengeluaran">Pengeluaran</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>&nbsp;</label>
+          <button type="submit" class="btn-green">+ Tambah Transaksi</button>
+        </div>
+      </div>
     </form>
 
-    <div id="summary" class="hidden">
-      <h2>Ringkasan Bulanan</h2>
-      <p>Pemasukan: <span id="totalIn">0</span></p>
-      <p>Pengeluaran: <span id="totalOut">0</span></p>
-      <p><b>Saldo: <span id="saldo">0</span></b></p>
+    <!-- RINGKASAN -->
+    <div id="summary" class="hidden fade-in">
+      <h2>📊 Ringkasan Bulan Ini</h2>
+      <p>Pemasukan: <span id="totalIn">Rp 0</span></p>
+      <p>Pengeluaran: <span id="totalOut">Rp 0</span></p>
+      <p><b>Saldo: <span id="saldo">Rp 0</span></b></p>
     </div>
 
-    <table id="transactions" class="hidden">
+    <!-- TABEL TRANSAKSI -->
+    <table id="transactions" class="hidden fade-in">
       <thead>
         <tr>
           <th>Keterangan</th>
@@ -52,10 +70,9 @@
     </table>
   </div>
 
+  <!-- FOOTER -->
   <footer>
-    © 2025 Dompet Bulanan | Dibuat dengan ❤️ oleh Wakied
+    <p>💡 Dibuat dengan ❤️ oleh Wakied | Dompet Bulanan 2025</p>
   </footer>
-
-  <script type="module" src="app.js" defer></script>
 </body>
 </html>

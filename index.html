@@ -1,50 +1,105 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dompet Bulanan</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <!-- App (module) -->
   <script type="module" src="app.js" defer></script>
 </head>
 <body>
-  <div class="container">
-    <h1>💸 Dompet Bulanan</h1>
-    
-    <div id="user-section">
-      <button id="loginBtn" class="btn">Login dengan Google</button>
-      <button id="logoutBtn" class="btn hidden">Logout</button>
-      <p id="userName"></p>
-    </div>
+  <main class="container">
+    <header class="header">
+      <h1>💸 Dompet Bulanan</h1>
+      <div id="user-section">
+        <button id="loginBtn" class="btn">Login dengan Google</button>
+        <button id="logoutBtn" class="btn hidden">Logout</button>
+        <p id="userName" class="muted"></p>
+      </div>
+    </header>
 
-    <form id="transaction-form" class="hidden">
-      <input type="text" id="keterangan" placeholder="Keterangan..." required>
-      <input type="number" id="jumlah" placeholder="Jumlah (Rp)" required>
-      <select id="tipe">
-        <option value="pemasukan">Pemasukan</option>
-        <option value="pengeluaran">Pengeluaran</option>
-      </select>
-      <button type="submit" class="btn-green">Tambah</button>
-    </form>
+    <section id="app">
+      <form id="transaction-form" class="card hidden">
+        <div class="row">
+          <input type="text" id="keterangan" placeholder="Keterangan..." required>
+          <input type="number" id="jumlah" placeholder="Jumlah (Rp)" required>
+        </div>
+        <div class="row">
+          <select id="tipe">
+            <option value="pemasukan">Pemasukan</option>
+            <option value="pengeluaran">Pengeluaran</option>
+          </select>
+          <button type="submit" class="btn-green">Tambah</button>
+        </div>
+      </form>
 
-    <div id="summary" class="hidden">
-      <h2>Ringkasan</h2>
-      <p>Pemasukan: <span id="totalIn">0</span></p>
-      <p>Pengeluaran: <span id="totalOut">0</span></p>
-      <p><b>Saldo: <span id="saldo">0</span></b></p>
-    </div>
+      <section id="summary" class="card hidden">
+        <h2>Ringkasan</h2>
+        <div class="summary-grid">
+          <div class="card-sm">
+            <p class="muted">Pemasukan</p>
+            <p id="totalIn">Rp 0</p>
+          </div>
+          <div class="card-sm">
+            <p class="muted">Pengeluaran</p>
+            <p id="totalOut">Rp 0</p>
+          </div>
+          <div class="card-sm">
+            <p class="muted">Saldo</p>
+            <p id="saldo">Rp 0</p>
+          </div>
+        </div>
+      </section>
 
-    <table id="transactions" class="hidden">
-      <thead>
-        <tr>
-          <th>Keterangan</th>
-          <th>Jumlah</th>
-          <th>Tipe</th>
-          <th>Tanggal</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+      <section id="transactions-section" class="card hidden">
+        <h2>Transaksi</h2>
+        <table id="transactions">
+          <thead>
+            <tr>
+              <th>Keterangan</th>
+              <th>Jumlah</th>
+              <th>Tipe</th>
+              <th>Tanggal</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section id="pengeluaran-section" class="card hidden">
+        <h2>Pengeluaran Bulanan</h2>
+        <div class="row">
+          <label for="filterBulan">Filter Bulan</label>
+          <input type="month" id="filterBulan">
+        </div>
+
+        <div class="table-wrap">
+          <table id="pengeluaranTable">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Deskripsi</th>
+                <th>Jumlah (Rp)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" class="total">Total Bulanan</td>
+                <td id="totalBulanan" class="total">0</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <canvas id="chartPengeluaran" aria-label="Grafik pengeluaran" role="img"></canvas>
+      </section>
+    </section>
+
+    <footer class="muted center">Made with ❤️ — Dompet Bulanan</footer>
+  </main>
 </body>
 </html>

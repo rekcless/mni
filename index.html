@@ -12,6 +12,31 @@
     <h1>💸 Dompet Bulanan</h1>
     
     <div id="user-section">
+
+<div id="pengeluaran-section" class="hidden">
+  <h2>Pengeluaran Bulanan</h2>
+  <label for="filterBulan">Filter Bulan:</label>
+  <input type="month" id="filterBulan">
+
+  <table id="pengeluaranTable">
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Deskripsi</th>
+        <th>Jumlah (Rp)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2" class="total">Total Bulanan</td>
+        <td id="totalBulanan" class="total">0</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+      
       <button id="loginBtn" class="btn">Login dengan Google</button>
       <button id="logoutBtn" class="btn hidden">Logout</button>
       <p id="userName"></p>
@@ -29,6 +54,7 @@
 
     <div id="summary" class="hidden">
       <h2>Ringkasan</h2>
+      
       <p>Pemasukan: <span id="totalIn">0</span></p>
       <p>Pengeluaran: <span id="totalOut">0</span></p>
       <p><b>Saldo: <span id="saldo">0</span></b></p>

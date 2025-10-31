@@ -156,7 +156,17 @@ table tr:last-child td {
 }
 
 
-/* === FOOTER STICKY === */
+/* === FOOTER FIXED DI BAWAH === */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.container {
+  flex: 1; /* biar kontainer ngisi ruang di atas footer */
+}
+
 footer {
   text-align: center;
   padding: 15px 10px;
@@ -164,9 +174,7 @@ footer {
   color: #aaa;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(6px);
-  position: fixed;
-  bottom: 0;
-  left: 0;
   width: 100%;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 40px;
 }

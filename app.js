@@ -1,12 +1,21 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { 
-  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { 
-  getFirestore, collection, addDoc, getDocs, query, where, orderBy 
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ✅ Firebase config kamu
+// === Konfigurasi Firebase ===
 const firebaseConfig = {
   apiKey: "AIzaSyASlBHqMbc3qegoqYx4pJieQrDgKNh-GA0",
   authDomain: "wallet-26246.firebaseapp.com",
@@ -17,36 +26,35 @@ const firebaseConfig = {
   measurementId: "G-Q5ZH25EZT4"
 };
 
-// 🔧 Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// 🧠 Ambil elemen DOM
+// === Elemen DOM ===
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const userName = document.getElementById("userName");
 const form = document.getElementById("transaction-form");
-const transactionsTable = document.getElementById("transactions");
 const summaryDiv = document.getElementById("summary");
-const tbody = transactionsTable.querySelector("tbody");
+const transactionsTable = document.getElementById("transactions");
+const bulanSelect = document.getElementById("bulan");
+const filterSection = document.getElementById("filter-section");
 
-// 🔐 Login
+// === Login / Logout ===
 loginBtn.addEventListener("click", async () => {
   try {
     await signInWithPopup(auth, provider);
-  } catch (e) {
-    alert("Login gagal: " + e.message);
+  } catch (error) {
+    alert("Login gagal: " + error.message);
   }
 });
 
-// 🚪 Logout
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
 });
 
-// 🔄 Pantau status login
+// === Pantau Status Login ===
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     loginBtn.classList.add("hidden");
@@ -54,62 +62,96 @@ onAuthStateChanged(auth, async (user) => {
     form.classList.remove("hidden");
     summaryDiv.classList.remove("hidden");
     transactionsTable.classList.remove("hidden");
-    userName.textContent = `Halo, ${user.displayName} 👋`;
-    await loadTransactions(user.uid);
+    filterSection.classList.remove("hidden");
+    userName.textContent = "Halo, " + user.displayName + " 👋";
+
+    await isiDropdownBulan(user.uid);
+    const bulanSekarang = new Date().getMonth();
+    bulanSelect.value = bulanSekarang;
+    await loadTransactions(user.uid, bulanSekarang);
   } else {
     loginBtn.classList.remove("hidden");
     logoutBtn.classList.add("hidden");
     form.classList.add("hidden");
     summaryDiv.classList.add("hidden");
     transactionsTable.classList.add("hidden");
+    filterSection.classList.add("hidden");
     userName.textContent = "";
   }
 });
 
-// ➕ Tambah transaksi
+// === Tambah Transaksi ===
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const user = auth.currentUser;
   if (!user) return alert("Login dulu bro 😎");
 
-  const keterangan = document.getElementById("keterangan").value.trim();
-  const jumlah = parseInt(document.getElementById("jumlah").value);
-  const tipe = document.getElementById("tipe").value;
-  if (!keterangan || isNaN(jumlah)) return alert("Isi semua kolom ya bro!");
-
   const data = {
     uid: user.uid,
-    keterangan,
-    jumlah,
-    tipe,
-    tanggal: new Date().toLocaleString("id-ID"),
+    keterangan: document.getElementById("keterangan").value,
+    jumlah: parseInt(document.getElementById("jumlah").value),
+    tipe: document.getElementById("tipe").value,
+    tanggal: new Date().toISOString(),
   };
 
-  await addDoc(collection(db, "transaksi"), data);
-  form.reset();
-  await loadTransactions(user.uid);
+  try {
+    await addDoc(collection(db, "transaksi"), data);
+    form.reset();
+    await loadTransactions(user.uid, parseInt(bulanSelect.value));
+  } catch (err) {
+    alert("Gagal menambah data: " + err.message);
+  }
 });
 
-// 📊 Load data
-async function loadTransactions(uid) {
-  tbody.innerHTML = "";
-  let totalIn = 0, totalOut = 0;
-
-  const q = query(collection(db, "transaksi"), where("uid", "==", uid), orderBy("tanggal", "desc"));
+// === Isi Dropdown Bulan ===
+async function isiDropdownBulan(uid) {
+  const q = query(collection(db, "transaksi"), where("uid", "==", uid));
   const snapshot = await getDocs(q);
 
-  if (snapshot.empty) {
-    tbody.innerHTML = `<tr><td colspan="4">Belum ada data...</td></tr>`;
-  }
+  const bulanUnik = new Set();
+  snapshot.forEach(doc => {
+    const tgl = new Date(doc.data().tanggal);
+    bulanUnik.add(`${tgl.getFullYear()}-${tgl.getMonth()}`);
+  });
+
+  bulanSelect.innerHTML = "";
+  [...bulanUnik].sort().reverse().forEach(bulanKey => {
+    const [tahun, bulan] = bulanKey.split("-");
+    const namaBulan = new Date(tahun, bulan).toLocaleString("id-ID", { month: "long", year: "numeric" });
+    const option = document.createElement("option");
+    option.value = bulan;
+    option.textContent = namaBulan;
+    bulanSelect.appendChild(option);
+  });
+}
+
+// === Load Transaksi Berdasarkan Bulan ===
+bulanSelect.addEventListener("change", async () => {
+  const user = auth.currentUser;
+  if (user) await loadTransactions(user.uid, parseInt(bulanSelect.value));
+});
+
+async function loadTransactions(uid, bulanDipilih) {
+  const tbody = transactionsTable.querySelector("tbody");
+  tbody.innerHTML = "";
+  let totalIn = 0;
+  let totalOut = 0;
+
+  const q = query(collection(db, "transaksi"), where("uid", "==", uid));
+  const snapshot = await getDocs(q);
 
   snapshot.forEach(doc => {
     const d = doc.data();
+    const tanggalObj = new Date(d.tanggal);
+    const bulanData = tanggalObj.getMonth();
+    if (bulanData !== bulanDipilih) return; // filter bulan
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${d.keterangan}</td>
-      <td>Rp ${d.jumlah.toLocaleString("id-ID")}</td>
+      <td>Rp ${d.jumlah.toLocaleString()}</td>
       <td style="color:${d.tipe === "pemasukan" ? "#39ff14" : "#ff4040"}">${d.tipe}</td>
-      <td>${d.tanggal}</td>
+      <td>${tanggalObj.toLocaleDateString("id-ID")}</td>
     `;
     tbody.appendChild(tr);
 
@@ -117,7 +159,7 @@ async function loadTransactions(uid) {
     else totalOut += d.jumlah;
   });
 
-  document.getElementById("totalIn").textContent = "Rp " + totalIn.toLocaleString("id-ID");
-  document.getElementById("totalOut").textContent = "Rp " + totalOut.toLocaleString("id-ID");
-  document.getElementById("saldo").textContent = "Rp " + (totalIn - totalOut).toLocaleString("id-ID");
-        }
+  document.getElementById("totalIn").textContent = "Rp " + totalIn.toLocaleString();
+  document.getElementById("totalOut").textContent = "Rp " + totalOut.toLocaleString();
+  document.getElementById("saldo").textContent = "Rp " + (totalIn - totalOut).toLocaleString();
+}

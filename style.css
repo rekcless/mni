@@ -1,0 +1,75 @@
+body {
+  font-family: "Poppins", sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #161b22;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0,255,128,0.2);
+}
+
+h1 {
+  color: #00ff88;
+}
+
+.btn, .btn-green {
+  background: #238636;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn:hover, .btn-green:hover {
+  background: #2ea043;
+}
+
+.hidden { display: none; }
+
+.form-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #30363d;
+}
+
+th {
+  background: #21262d;
+}
+
+footer {
+  text-align: center;
+  margin-top: 30px;
+  padding: 10px;
+  color: #7d8590;
+}

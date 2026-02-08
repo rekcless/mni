@@ -15,6 +15,11 @@
 <header>
   <h1>💰 Wallet Tracker</h1>
   <div id="saldo" class="positive">Rp 0</div>
+
+  <div class="toggle">
+    <button id="modeMonth" class="active">Bulanan</button>
+    <button id="modeTotal">Total</button>
+  </div>
 </header>
 
 <main>
@@ -43,7 +48,7 @@
     <div id="insightBox" class="insight">Menunggu data...</div>
   </section>
 
-  <!-- TARGET TABUNGAN -->
+  <!-- TARGET -->
   <section class="card">
     <h2>🎯 Target Tabungan Bulan Ini</h2>
     <input type="number" id="targetInput" placeholder="Target (Rp)">
@@ -57,9 +62,9 @@
     </div>
   </section>
 
-  <!-- GRAFIK -->
+  <!-- CHART -->
   <section class="card">
-    <h2>📊 Grafik Bulanan</h2>
+    <h2>📊 Grafik</h2>
     <canvas id="chart"></canvas>
   </section>
 
@@ -73,9 +78,7 @@
 
 <footer>© 2026 Wallet App</footer>
 
-<!-- 🔥 MODULAR -->
 <script type="module" src="firebase.js"></script>
 <script type="module" src="app.js"></script>
-
 </body>
 </html>

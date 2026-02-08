@@ -29,9 +29,10 @@ header {
   border-radius: 8px;
   color: #fff;
   cursor: pointer;
+  transition: 0.2s;
 }
 
-.toggle .active {
+.toggle button.active {
   background: #2563eb;
 }
 
@@ -60,6 +61,11 @@ button {
   background: #2563eb;
   font-weight: bold;
   cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
 }
 
 /* RIWAYAT */
@@ -69,18 +75,33 @@ ul {
   margin: 0;
 }
 
+.date-group {
+  margin-bottom: 12px;
+}
+
 .date-header {
   font-size: 12px;
   font-weight: bold;
-  opacity: .6;
-  margin: 12px 0 6px;
+  opacity: 0.8;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.tx-list {
+  margin-left: 12px;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
 }
 
 .tx-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
+  padding: 12px 0;
   border-bottom: 1px solid #1e293b;
 }
 
@@ -112,6 +133,7 @@ ul {
   border: none;
   color: #ef4444;
   cursor: pointer;
+  font-size: 14px;
 }
 
 /* INSIGHT */
@@ -138,6 +160,7 @@ ul {
   height: 100%;
   width: 0%;
   background: #22c55e;
+  transition: width 0.25s ease;
 }
 
 footer {

@@ -5,6 +5,7 @@ import {
   setDoc, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ===== ELEMENT =====
 const saldoEl = document.getElementById("saldo");
 const historyEl = document.getElementById("history");
 const saveBtn = document.getElementById("saveBtn");
@@ -39,18 +40,34 @@ saveBtn.onclick = async () => {
   const amount = Number(document.getElementById("amount").value);
   const note = document.getElementById("note").value;
   if(!amount) return alert("Nominal kosong");
+
   try {
-    await addDoc(collection(db,"transactions"),{type,amount,note,month:currentMonth,createdAt:Timestamp.now()});
-    console.log("✅ Transaksi tersimpan");
-    document.getElementById("amount").value=""; document.getElementById("note").value="";
-  } catch(e){ console.error("❌ Gagal simpan:",e); alert("Gagal simpan, cek console"); }
+    await addDoc(collection(db,"transactions"),{
+      type,
+      amount,
+      note,
+      month: currentMonth,
+      createdAt: Timestamp.now()
+    });
+    document.getElementById("amount").value="";
+    document.getElementById("note").value="";
+  } catch(e){
+    console.error("❌ Gagal simpan:",e);
+    alert("Gagal simpan, cek console");
+  }
 };
 
 // ===== SIMPAN TARGET =====
 saveTarget.onclick = async () => {
-  currentTarget = Number(targetInput.value); if(!currentTarget) return alert("Target kosong");
-  try { await setDoc(doc(db,"targets",currentMonth),{target:currentTarget}); }
-  catch(e){ console.error("❌ Gagal simpan target:",e); alert("Gagal simpan target, cek console"); }
+  currentTarget = Number(targetInput.value);
+  if(!currentTarget) return alert("Target kosong");
+
+  try {
+    await setDoc(doc(db,"targets",currentMonth),{target:currentTarget});
+  } catch(e){
+    console.error("❌ Gagal simpan target:",e);
+    alert("Gagal simpan target, cek console");
+  }
 };
 
 // ===== FILTER BULAN =====
@@ -61,36 +78,125 @@ const q=query(collection(db,"transactions"),orderBy("createdAt","desc"));
 onSnapshot(q,snap=>{allData=snap.docs.map(d=>({id:d.id,...d.data()})); renderUI();});
 
 // ===== LOAD TARGET =====
-async function loadTarget(){try{const snap=await getDoc(doc(db,"targets",currentMonth)); currentTarget=snap.exists()?snap.data().target:0; targetInput.value=currentTarget||"";}catch(e){console.error("❌ Gagal load target:",e);}}
+async function loadTarget(){
+  try{
+    const snap=await getDoc(doc(db,"targets",currentMonth));
+    currentTarget=snap.exists()?snap.data().target:0;
+    targetInput.value=currentTarget||"";
+  }catch(e){console.error("❌ Gagal load target:",e);}
+}
 
 // ===== RENDER UI =====
 function renderUI(){
   historyEl.innerHTML="";
   const data=viewMode==="month"?allData.filter(d=>d.month===currentMonth):allData;
-  if(!data.length){historyEl.innerHTML=`<li style="opacity:.6;text-align:center">Belum ada transaksi</li>`; renderInsight(0,0,0); renderTarget(0); if(chart) chart.destroy(); return;}
-  let income=0,expense=0; const grouped={};
-  data.forEach(d=>{d.type==="income"?income+=d.amount:expense+=d.amount; const dateKey=d.createdAt.toDate().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"}); if(!grouped[dateKey]) grouped[dateKey]=[]; grouped[dateKey].push(d);});
-  Object.keys(grouped).forEach(date=>{const header=document.createElement("div"); header.className="date-header"; header.textContent="📅 "+date; historyEl.appendChild(header);
-    grouped[date].forEach(d=>{const li=document.createElement("li"); li.className="tx-item"; li.innerHTML=`<div class="tx-left"><div class="tx-note">${d.note||"Tanpa keterangan"}</div></div><div class="tx-right"><div class="amount ${d.type==="income"?"positive":"negative"}">${d.type==="income"?"+":"-"}${rupiah(d.amount)}</div><button class="delete">✕</button></div>`; li.querySelector(".delete").onclick=async()=>{if(confirm("Hapus transaksi ini?")){try{await deleteDoc(doc(db,"transactions",d.id));}catch(e){console.error("❌ Gagal hapus:",e); alert("Gagal hapus, cek console");}}}; historyEl.appendChild(li);});});
-  const saldo=income-expense;
-  saldoEl.textContent=rupiah(saldo); saldoEl.className=saldo<0?"negative":"positive";
-  renderInsight(income,expense,saldo); renderTarget(saldo); renderChart(income,expense);
+
+  if(!data.length){
+    historyEl.innerHTML=`<li style="opacity:.6;text-align:center">Belum ada transaksi</li>`;
+    renderInsight(0,0,0);
+    renderTarget(0);
+    if(chart) chart.destroy();
+    return;
+  }
+
+  let income=0,expense=0;
+  const grouped={};
+
+  // ===== GROUP BY DATE =====
+  data.forEach(d=>{
+    d.type==="income"?income+=d.amount:expense+=d.amount;
+
+    const dateKey=d.createdAt.toDate().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"});
+    if(!grouped[dateKey]) grouped[dateKey]=[];
+    grouped[dateKey].push(d);
+  });
+
+  Object.keys(grouped).forEach(date=>{
+    const incomePerDay = grouped[date].filter(d=>d.type==="income").reduce((a,b)=>a+b.amount,0);
+    const expensePerDay = grouped[date].filter(d=>d.type==="expense").reduce((a,b)=>a+b.amount,0);
+
+    // ===== DATE HEADER =====
+    const dateGroup = document.createElement("div");
+    dateGroup.className = "date-group";
+
+    const header = document.createElement("div");
+    header.className = "date-header";
+    header.innerHTML = `📅 ${date} ▸ (Pemasukan: ${rupiah(incomePerDay)}, Pengeluaran: ${rupiah(expensePerDay)})`;
+
+    const txList = document.createElement("ul");
+    txList.className = "tx-list";
+    txList.style.display = "none"; // default collapsed
+
+    // ===== TRANSAKSI PER HARI =====
+    grouped[date].forEach(d=>{
+      const li=document.createElement("li");
+      li.className="tx-item";
+      li.innerHTML = `
+        <div class="tx-left">
+          <div class="tx-note">${d.note || "Tanpa keterangan"}</div>
+        </div>
+        <div class="tx-right">
+          <div class="amount ${d.type==="income"?"positive":"negative"}">${d.type==="income"?"+":"-"}${rupiah(d.amount)}</div>
+          <button class="delete">✕</button>
+        </div>
+      `;
+      li.querySelector(".delete").onclick = async()=>{
+        if(confirm("Hapus transaksi ini?")){
+          try{ await deleteDoc(doc(db,"transactions",d.id)); }
+          catch(e){ console.error("❌ Gagal hapus:",e); alert("Gagal hapus, cek console"); }
+        }
+      };
+      txList.appendChild(li);
+    });
+
+    // ===== TOGGLE COLLAPSE =====
+    header.onclick = ()=>{
+      txList.style.display = txList.style.display==="none"?"block":"none";
+      header.innerHTML = `📅 ${date} ${txList.style.display==="none"?"▸":"▼"} (Pemasukan: ${rupiah(incomePerDay)}, Pengeluaran: ${rupiah(expensePerDay)})`;
+    };
+
+    dateGroup.appendChild(header);
+    dateGroup.appendChild(txList);
+    historyEl.appendChild(dateGroup);
+  });
+
+  const saldo = income-expense;
+  saldoEl.textContent = rupiah(saldo);
+  saldoEl.className = saldo<0?"negative":"positive";
+
+  renderInsight(income,expense,saldo);
+  renderTarget(saldo);
+  renderChart(income,expense);
 }
 
 // ===== INSIGHT =====
-function renderInsight(income,expense,saldo){if(!income&&!expense){insightBox.textContent="Belum ada data"; insightBox.className="insight"; return;}
-  const ratio=income?(expense/income)*100:100; let cls="safe",text="Aman"; if(saldo<0){cls="danger"; text="🚨 Keuangan defisit";}else if(ratio>80){cls="danger"; text=`🚨 Boros (${ratio.toFixed(0)}%)`;}else if(ratio>50){cls="warn"; text=`⚠️ Waspada (${ratio.toFixed(0)}%)`;}
-  insightBox.textContent=text; insightBox.className=`insight ${cls}`;
+function renderInsight(income,expense,saldo){
+  if(!income&&!expense){ insightBox.textContent="Belum ada data"; insightBox.className="insight"; return; }
+
+  const ratio = income?(expense/income)*100:100;
+  let cls="safe",text="Aman";
+
+  if(saldo<0){ cls="danger"; text="🚨 Keuangan defisit"; }
+  else if(ratio>80){ cls="danger"; text=`🚨 Boros (${ratio.toFixed(0)}%)`; }
+  else if(ratio>50){ cls="warn"; text=`⚠️ Waspada (${ratio.toFixed(0)}%)`; }
+
+  insightBox.textContent = text;
+  insightBox.className = `insight ${cls}`;
 }
 
 // ===== TARGET =====
-function renderTarget(saldo){if(!currentTarget){progressFill.style.width="0%"; progressText.textContent=""; return;}
-  const progress=Math.min((saldo/currentTarget)*100,100); progressFill.style.width=progress+"%"; progressText.textContent=`${rupiah(saldo)} / ${rupiah(currentTarget)}`;
+function renderTarget(saldo){
+  if(!currentTarget){ progressFill.style.width="0%"; progressText.textContent=""; return; }
+  const progress = Math.min((saldo/currentTarget)*100,100);
+  progressFill.style.width = progress+"%";
+  progressText.textContent = `${rupiah(saldo)} / ${rupiah(currentTarget)}`;
 }
 
 // ===== CHART =====
-function renderChart(income,expense){if(chart) chart.destroy(); if(!income&&!expense) return;
-  chart=new Chart(ctx,{type:"doughnut",data:{labels:["Pemasukan","Pengeluaran"],datasets:[{data:[income,expense]}]}});
+function renderChart(income,expense){
+  if(chart) chart.destroy();
+  if(!income&&!expense) return;
+  chart = new Chart(ctx,{type:"doughnut",data:{labels:["Pemasukan","Pengeluaran"],datasets:[{data:[income,expense]}]}});
 }
 
 loadTarget();

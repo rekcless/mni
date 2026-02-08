@@ -13,7 +13,26 @@ header {
 
 #saldo {
   font-size: 26px;
-  margin-top: 6px;
+  margin: 6px 0;
+}
+
+.toggle {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.toggle button {
+  background: #1e293b;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.toggle .active {
+  background: #2563eb;
 }
 
 main {
@@ -43,32 +62,56 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  opacity: 0.9;
-}
-
 ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
-li {
+/* RIWAYAT */
+.date-header {
+  font-size: 12px;
+  font-weight: bold;
+  opacity: .6;
+  margin: 12px 0 6px;
+}
+
+.tx-item {
   display: flex;
   justify-content: space-between;
-  padding: 10px;
+  align-items: center;
+  padding: 12px;
   border-bottom: 1px solid #1e293b;
+}
+
+.tx-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tx-note {
+  font-size: 13px;
+}
+
+.tx-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .amount {
   font-weight: bold;
 }
 
-.positive {
-  color: #22c55e;
-}
+.positive { color: #22c55e; }
+.negative { color: #ef4444; }
 
-.negative {
+.delete {
+  background: transparent;
+  border: none;
   color: #ef4444;
+  cursor: pointer;
 }
 
 /* INSIGHT */
@@ -76,7 +119,6 @@ li {
   padding: 12px;
   border-radius: 12px;
   background: #111827;
-  font-size: 14px;
 }
 
 .insight.safe { border-left: 5px solid #22c55e; }
@@ -84,15 +126,12 @@ li {
 .insight.danger { border-left: 5px solid #ef4444; }
 
 /* TARGET */
-.progress-box {
-  margin-top: 12px;
-}
-
 .progress-bar {
   height: 12px;
   background: #1e293b;
   border-radius: 10px;
   overflow: hidden;
+  margin-top: 8px;
 }
 
 #progressFill {
@@ -105,5 +144,5 @@ footer {
   text-align: center;
   padding: 12px;
   font-size: 12px;
-  opacity: 0.6;
+  opacity: .6;
 }

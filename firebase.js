@@ -1,6 +1,13 @@
-// firebase.js
+// firebase.js (MODULAR)
+
+// Core
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+
+// Firestore
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Auth
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // Config
@@ -14,14 +21,19 @@ const firebaseConfig = {
   measurementId: "G-L35FC04B0T"
 };
 
-// Init
+// Init app
 const app = initializeApp(firebaseConfig);
+
+// Optional (boleh, gak wajib)
+const analytics = getAnalytics(app);
+
+// Init services
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Login anonymous
+// Login anonymous (WAJIB untuk Firestore)
 await signInAnonymously(auth);
-console.log("🔥 Firebase connected (modular)");
+console.log("🔥 Firebase connected & authenticated");
 
-// EXPORT
+// Export DB
 export { db };

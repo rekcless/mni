@@ -9,6 +9,10 @@
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Firebase (COMPAT) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -39,22 +43,20 @@
 
   <!-- INSIGHT -->
   <section class="card">
-    <h2>🧠 Insight Keuangan</h2>
-    <div id="insightBox" class="insight">Menunggu data...</div>
+    <h2>🧠 Insight</h2>
+    <div id="insightBox" class="insight">Belum ada data</div>
   </section>
 
-  <!-- TARGET TABUNGAN -->
+  <!-- TARGET -->
   <section class="card">
-    <h2>🎯 Target Tabungan Bulan Ini</h2>
-    <input type="number" id="targetInput" placeholder="Target (Rp)">
+    <h2>🎯 Target Tabungan</h2>
+    <input type="number" id="targetInput" placeholder="Target bulan ini">
     <button id="saveTarget">Simpan Target</button>
 
-    <div class="progress-box">
-      <div class="progress-bar">
-        <div id="progressFill"></div>
-      </div>
-      <div id="progressText"></div>
+    <div class="progress">
+      <div id="progressFill"></div>
     </div>
+    <div id="progressText"></div>
   </section>
 
   <!-- GRAFIK -->
@@ -73,9 +75,7 @@
 
 <footer>© 2026 Wallet App</footer>
 
-<!-- 🔥 MODULAR -->
-<script type="module" src="firebase.js"></script>
-<script type="module" src="app.js"></script>
-
+<script src="firebase.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

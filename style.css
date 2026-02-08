@@ -1,39 +1,30 @@
-* {
-  box-sizing: border-box;
-  font-family: system-ui, sans-serif;
-}
-
 body {
+  font-family: system-ui, sans-serif;
   margin: 0;
-  background: #020617;
+  background: #0f172a;
   color: #e5e7eb;
 }
 
 header {
   padding: 16px;
   background: #020617;
-  border-bottom: 1px solid #022c22;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  text-align: center;
 }
 
 #saldo {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 26px;
+  margin-top: 6px;
 }
 
 main {
-  padding: 16px;
-  display: grid;
-  gap: 16px;
+  padding: 14px;
 }
 
 .card {
   background: #020617;
-  border: 1px solid #022c22;
-  border-radius: 16px;
-  padding: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+  border-radius: 14px;
 }
 
 input, select, button {
@@ -42,39 +33,65 @@ input, select, button {
   margin-top: 8px;
   border-radius: 10px;
   border: none;
-  background: #020617;
+  background: #111827;
   color: #e5e7eb;
-  border: 1px solid #022c22;
 }
 
 button {
-  background: #22c55e;
-  color: #022c22;
+  background: #2563eb;
   font-weight: bold;
   cursor: pointer;
 }
 
 button:hover {
-  opacity: .9;
+  opacity: 0.9;
 }
 
-.positive { color: #22c55e; }
-.negative { color: #ef4444; }
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.amount {
+  font-weight: bold;
+}
+
+.positive {
+  color: #22c55e;
+}
+
+.negative {
+  color: #ef4444;
+}
 
 /* INSIGHT */
 .insight {
   padding: 12px;
-  background: #022c22;
   border-radius: 12px;
-  color: #22c55e;
+  background: #111827;
+  font-size: 14px;
 }
 
-/* PROGRESS */
-.progress {
-  background: #022c22;
-  height: 10px;
+.insight.safe { border-left: 5px solid #22c55e; }
+.insight.warn { border-left: 5px solid #facc15; }
+.insight.danger { border-left: 5px solid #ef4444; }
+
+/* TARGET */
+.progress-box {
+  margin-top: 12px;
+}
+
+.progress-bar {
+  height: 12px;
+  background: #1e293b;
   border-radius: 10px;
-  margin-top: 10px;
   overflow: hidden;
 }
 
@@ -84,51 +101,9 @@ button:hover {
   background: #22c55e;
 }
 
-/* RIWAYAT */
-#history {
-  list-style: none;
-  padding: 0;
-}
-
-.date-group {
-  margin: 16px 0 6px;
-  color: #22c55e;
-  font-size: 13px;
-}
-
-#history li {
-  background: #020617;
-  border: 1px solid #022c22;
-  border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.tx-note {
-  font-size: 14px;
-}
-
-.tx-amount {
-  font-weight: bold;
-}
-
-.tx-delete {
-  background: transparent;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-}
-
-.tx-delete:hover {
-  color: #ef4444;
-}
-
 footer {
   text-align: center;
   padding: 12px;
   font-size: 12px;
-  color: #64748b;
+  opacity: 0.6;
 }

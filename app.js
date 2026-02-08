@@ -1,19 +1,10 @@
 import { db } from "./firebase.js";
-
 import {
-  collection,
-  addDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  deleteDoc,
-  doc,
-  getDoc,
-  setDoc,
-  Timestamp
+  collection, addDoc, onSnapshot, query,
+  orderBy, deleteDoc, doc, getDoc,
+  setDoc, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ===== ELEMENT =====
 const saldoEl = document.getElementById("saldo");
 const historyEl = document.getElementById("history");
 const saveBtn = document.getElementById("saveBtn");
@@ -26,15 +17,33 @@ const saveTarget = document.getElementById("saveTarget");
 const progressFill = document.getElementById("progressFill");
 const progressText = document.getElementById("progressText");
 
-let chart;
-let allData = [];
+const modeMonth = document.getElementById("modeMonth");
+const modeTotal = document.getElementById("modeTotal");
 
-// ===== BULAN OTOMATIS =====
+let allData = [];
+let chart;
+let currentTarget = 0;
+let viewMode = "month";
+
 let currentMonth = new Date().toISOString().slice(0, 7);
 monthFilter.value = currentMonth;
 
-// ===== UTIL =====
 const rupiah = n => "Rp " + n.toLocaleString("id-ID");
+
+// ===== TOGGLE =====
+modeMonth.onclick = () => {
+  viewMode = "month";
+  modeMonth.classList.add("active");
+  modeTotal.classList.remove("active");
+  renderUI();
+};
+
+modeTotal.onclick = () => {
+  viewMode = "total";
+  modeTotal.classList.add("active");
+  modeMonth.classList.remove("active");
+  renderUI();
+};
 
 // ===== SIMPAN TRANSAKSI =====
 saveBtn.onclick = async () => {
@@ -45,9 +54,7 @@ saveBtn.onclick = async () => {
   if (!amount) return alert("Nominal kosong");
 
   await addDoc(collection(db, "transactions"), {
-    type,
-    amount,
-    note,
+    type, amount, note,
     month: currentMonth,
     createdAt: Timestamp.now()
   });
@@ -56,27 +63,25 @@ saveBtn.onclick = async () => {
   document.getElementById("note").value = "";
 };
 
-// ===== SIMPAN TARGET =====
+// ===== TARGET =====
 saveTarget.onclick = async () => {
-  const target = Number(targetInput.value);
-  if (!target) return alert("Target kosong");
+  currentTarget = Number(targetInput.value);
+  if (!currentTarget) return alert("Target kosong");
 
-  await setDoc(doc(db, "targets", currentMonth), { target });
+  await setDoc(doc(db, "targets", currentMonth), {
+    target: currentTarget
+  });
 };
 
 // ===== FILTER BULAN =====
-monthFilter.onchange = () => {
+monthFilter.onchange = async () => {
   currentMonth = monthFilter.value;
-  loadTarget();
+  await loadTarget();
   renderUI();
 };
 
-// ===== LISTENER FIRESTORE =====
-const q = query(
-  collection(db, "transactions"),
-  orderBy("createdAt", "desc")
-);
-
+// ===== FIRESTORE =====
+const q = query(collection(db, "transactions"), orderBy("createdAt", "desc"));
 onSnapshot(q, snap => {
   allData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderUI();
@@ -85,42 +90,67 @@ onSnapshot(q, snap => {
 // ===== LOAD TARGET =====
 async function loadTarget() {
   const snap = await getDoc(doc(db, "targets", currentMonth));
-  targetInput.value = snap.exists() ? snap.data().target : "";
+  currentTarget = snap.exists() ? snap.data().target : 0;
+  targetInput.value = currentTarget || "";
 }
-loadTarget();
 
-// ===== RENDER UI =====
+// ===== RENDER =====
 function renderUI() {
   historyEl.innerHTML = "";
+
+  const data = viewMode === "month"
+    ? allData.filter(d => d.month === currentMonth)
+    : allData;
+
+  if (!data.length) {
+    historyEl.innerHTML = `<li style="opacity:.6;text-align:center">Belum ada transaksi</li>`;
+    return;
+  }
+
   let income = 0, expense = 0;
+  const grouped = {};
 
-  allData
-    .filter(d => d.month === currentMonth)
-    .forEach(d => {
+  data.forEach(d => {
+    d.type === "income" ? income += d.amount : expense += d.amount;
+
+    const dateKey = d.createdAt.toDate().toLocaleDateString("id-ID", {
+      day: "numeric", month: "long", year: "numeric"
+    });
+
+    if (!grouped[dateKey]) grouped[dateKey] = [];
+    grouped[dateKey].push(d);
+  });
+
+  Object.keys(grouped).forEach(date => {
+    const header = document.createElement("div");
+    header.className = "date-header";
+    header.textContent = "📅 " + date;
+    historyEl.appendChild(header);
+
+    grouped[date].forEach(d => {
       const li = document.createElement("li");
-      const date = d.createdAt.toDate().toLocaleDateString("id-ID");
-
-      d.type === "income"
-        ? income += d.amount
-        : expense += d.amount;
-
+      li.className = "tx-item";
       li.innerHTML = `
-        <div>
-          <div>${date}</div>
-          <small>${d.note || "-"}</small>
+        <div class="tx-left">
+          <div class="tx-note">${d.note || "Tanpa keterangan"}</div>
         </div>
-        <div class="amount ${d.type === "income" ? "positive" : "negative"}">
-          ${d.type === "income" ? "+" : "-"}${rupiah(d.amount)}
+        <div class="tx-right">
+          <div class="amount ${d.type === "income" ? "positive" : "negative"}">
+            ${d.type === "income" ? "+" : "-"}${rupiah(d.amount)}
+          </div>
           <button class="delete">✕</button>
         </div>
       `;
 
       li.querySelector(".delete").onclick = async () => {
-        await deleteDoc(doc(db, "transactions", d.id));
+        if (confirm("Hapus transaksi ini?")) {
+          await deleteDoc(doc(db, "transactions", d.id));
+        }
       };
 
       historyEl.appendChild(li);
     });
+  });
 
   const saldo = income - expense;
   saldoEl.textContent = rupiah(saldo);
@@ -133,23 +163,24 @@ function renderUI() {
 
 // ===== INSIGHT =====
 function renderInsight(income, expense, saldo) {
-  let text = "";
-  let cls = "";
+  if (!income && !expense) {
+    insightBox.textContent = "Belum ada data";
+    insightBox.className = "insight";
+    return;
+  }
 
-  const ratio = income ? (expense / income) * 100 : 0;
+  const ratio = income ? (expense / income) * 100 : 100;
+  let cls = "safe", text = "Aman";
 
   if (saldo < 0) {
-    text = "🚨 Keuangan defisit bulan ini";
     cls = "danger";
-  } else if (ratio < 50) {
-    text = "✅ Pengeluaran masih aman";
-    cls = "safe";
-  } else if (ratio < 80) {
-    text = "⚠️ Pengeluaran mulai besar";
+    text = "🚨 Keuangan defisit";
+  } else if (ratio > 80) {
+    cls = "danger";
+    text = `🚨 Boros (${ratio.toFixed(0)}%)`;
+  } else if (ratio > 50) {
     cls = "warn";
-  } else {
-    text = "🚨 Pengeluaran sudah berbahaya";
-    cls = "danger";
+    text = `⚠️ Waspada (${ratio.toFixed(0)}%)`;
   }
 
   insightBox.textContent = text;
@@ -158,25 +189,30 @@ function renderInsight(income, expense, saldo) {
 
 // ===== TARGET =====
 function renderTarget(saldo) {
-  const target = Number(targetInput.value);
-  if (!target) return;
+  if (!currentTarget) {
+    progressFill.style.width = "0%";
+    progressText.textContent = "";
+    return;
+  }
 
-  const progress = Math.min((saldo / target) * 100, 100);
+  const progress = Math.min((saldo / currentTarget) * 100, 100);
   progressFill.style.width = progress + "%";
-  progressText.textContent = `${rupiah(saldo)} / ${rupiah(target)}`;
+  progressText.textContent =
+    `${rupiah(saldo)} / ${rupiah(currentTarget)}`;
 }
 
 // ===== CHART =====
 function renderChart(income, expense) {
   if (chart) chart.destroy();
+  if (!income && !expense) return;
 
   chart = new Chart(ctx, {
     type: "doughnut",
     data: {
       labels: ["Pemasukan", "Pengeluaran"],
-      datasets: [{
-        data: [income, expense]
-      }]
+      datasets: [{ data: [income, expense] }]
     }
   });
 }
+
+loadTarget();

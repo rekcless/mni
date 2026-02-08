@@ -13,8 +13,7 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import Chart from "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.esm.js";
-
+// ===== ELEMENT =====
 const saldoEl = document.getElementById("saldo");
 const historyEl = document.getElementById("history");
 const saveBtn = document.getElementById("saveBtn");
@@ -29,9 +28,12 @@ const progressText = document.getElementById("progressText");
 
 let chart;
 let allData = [];
-let currentMonth = new Date().toISOString().slice(0,7);
+
+// ===== BULAN OTOMATIS =====
+let currentMonth = new Date().toISOString().slice(0, 7);
 monthFilter.value = currentMonth;
 
+// ===== UTIL =====
 const rupiah = n => "Rp " + n.toLocaleString("id-ID");
 
 // ===== SIMPAN TRANSAKSI =====
@@ -54,7 +56,7 @@ saveBtn.onclick = async () => {
   document.getElementById("note").value = "";
 };
 
-// ===== TARGET TABUNGAN =====
+// ===== SIMPAN TARGET =====
 saveTarget.onclick = async () => {
   const target = Number(targetInput.value);
   if (!target) return alert("Target kosong");
@@ -69,7 +71,7 @@ monthFilter.onchange = () => {
   renderUI();
 };
 
-// ===== LISTENER =====
+// ===== LISTENER FIRESTORE =====
 const q = query(
   collection(db, "transactions"),
   orderBy("createdAt", "desc")
@@ -82,40 +84,43 @@ onSnapshot(q, snap => {
 
 // ===== LOAD TARGET =====
 async function loadTarget() {
-  const ref = doc(db, "targets", currentMonth);
-  const snap = await getDoc(ref);
+  const snap = await getDoc(doc(db, "targets", currentMonth));
   targetInput.value = snap.exists() ? snap.data().target : "";
 }
 loadTarget();
 
-// ===== RENDER =====
+// ===== RENDER UI =====
 function renderUI() {
   historyEl.innerHTML = "";
   let income = 0, expense = 0;
 
-  allData.filter(d => d.month === currentMonth).forEach(d => {
-    const li = document.createElement("li");
-    const date = d.createdAt.toDate().toLocaleDateString("id-ID");
+  allData
+    .filter(d => d.month === currentMonth)
+    .forEach(d => {
+      const li = document.createElement("li");
+      const date = d.createdAt.toDate().toLocaleDateString("id-ID");
 
-    d.type === "income" ? income += d.amount : expense += d.amount;
+      d.type === "income"
+        ? income += d.amount
+        : expense += d.amount;
 
-    li.innerHTML = `
-      <div>
-        <div>${date}</div>
-        <small>${d.note || "-"}</small>
-      </div>
-      <div class="amount ${d.type === "income" ? "positive" : "negative"}">
-        ${d.type === "income" ? "+" : "-"}${rupiah(d.amount)}
-        <button class="delete">✕</button>
-      </div>
-    `;
+      li.innerHTML = `
+        <div>
+          <div>${date}</div>
+          <small>${d.note || "-"}</small>
+        </div>
+        <div class="amount ${d.type === "income" ? "positive" : "negative"}">
+          ${d.type === "income" ? "+" : "-"}${rupiah(d.amount)}
+          <button class="delete">✕</button>
+        </div>
+      `;
 
-    li.querySelector(".delete").onclick = async () => {
-      await deleteDoc(doc(db, "transactions", d.id));
-    };
+      li.querySelector(".delete").onclick = async () => {
+        await deleteDoc(doc(db, "transactions", d.id));
+      };
 
-    historyEl.appendChild(li);
-  });
+      historyEl.appendChild(li);
+    });
 
   const saldo = income - expense;
   saldoEl.textContent = rupiah(saldo);
@@ -128,7 +133,9 @@ function renderUI() {
 
 // ===== INSIGHT =====
 function renderInsight(income, expense, saldo) {
-  let text = "", cls = "";
+  let text = "";
+  let cls = "";
+
   const ratio = income ? (expense / income) * 100 : 0;
 
   if (saldo < 0) {
@@ -162,11 +169,14 @@ function renderTarget(saldo) {
 // ===== CHART =====
 function renderChart(income, expense) {
   if (chart) chart.destroy();
+
   chart = new Chart(ctx, {
     type: "doughnut",
     data: {
       labels: ["Pemasukan", "Pengeluaran"],
-      datasets: [{ data: [income, expense] }]
+      datasets: [{
+        data: [income, expense]
+      }]
     }
   });
 }

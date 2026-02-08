@@ -13,7 +13,7 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ===== ELEMENT =====
+/* ===== ELEMENT ===== */
 const saldoEl = document.getElementById("saldo");
 const historyEl = document.getElementById("history");
 const saveBtn = document.getElementById("saveBtn");
@@ -26,21 +26,25 @@ const saveTarget = document.getElementById("saveTarget");
 const progressFill = document.getElementById("progressFill");
 const progressText = document.getElementById("progressText");
 
+const typeEl = document.getElementById("type");
+const amountEl = document.getElementById("amount");
+const noteEl = document.getElementById("note");
+
 let chart;
 let allData = [];
 
-// ===== BULAN OTOMATIS =====
+/* ===== BULAN OTOMATIS ===== */
 let currentMonth = new Date().toISOString().slice(0, 7);
 monthFilter.value = currentMonth;
 
-// ===== UTIL =====
+/* ===== UTIL ===== */
 const rupiah = n => "Rp " + n.toLocaleString("id-ID");
 
-// ===== SIMPAN TRANSAKSI =====
+/* ===== SIMPAN TRANSAKSI ===== */
 saveBtn.onclick = async () => {
-  const type = document.getElementById("type").value;
-  const amount = Number(document.getElementById("amount").value);
-  const note = document.getElementById("note").value;
+  const type = typeEl.value;
+  const amount = Number(amountEl.value);
+  const note = noteEl.value;
 
   if (!amount) return alert("Nominal kosong");
 
@@ -52,11 +56,11 @@ saveBtn.onclick = async () => {
     createdAt: Timestamp.now()
   });
 
-  document.getElementById("amount").value = "";
-  document.getElementById("note").value = "";
+  amountEl.value = "";
+  noteEl.value = "";
 };
 
-// ===== SIMPAN TARGET =====
+/* ===== SIMPAN TARGET ===== */
 saveTarget.onclick = async () => {
   const target = Number(targetInput.value);
   if (!target) return alert("Target kosong");
@@ -64,14 +68,14 @@ saveTarget.onclick = async () => {
   await setDoc(doc(db, "targets", currentMonth), { target });
 };
 
-// ===== FILTER BULAN =====
+/* ===== FILTER BULAN ===== */
 monthFilter.onchange = () => {
   currentMonth = monthFilter.value;
   loadTarget();
   renderUI();
 };
 
-// ===== LISTENER FIRESTORE =====
+/* ===== LISTENER FIRESTORE ===== */
 const q = query(
   collection(db, "transactions"),
   orderBy("createdAt", "desc")
@@ -82,40 +86,59 @@ onSnapshot(q, snap => {
   renderUI();
 });
 
-// ===== LOAD TARGET =====
+/* ===== LOAD TARGET ===== */
 async function loadTarget() {
   const snap = await getDoc(doc(db, "targets", currentMonth));
   targetInput.value = snap.exists() ? snap.data().target : "";
 }
 loadTarget();
 
-// ===== RENDER UI =====
+/* ===== RENDER UI (GROUP PER TANGGAL) ===== */
 function renderUI() {
   historyEl.innerHTML = "";
-  let income = 0, expense = 0;
+
+  let income = 0;
+  let expense = 0;
+  let lastDate = "";
 
   allData
     .filter(d => d.month === currentMonth)
     .forEach(d => {
-      const li = document.createElement("li");
-      const date = d.createdAt.toDate().toLocaleDateString("id-ID");
+      const dateObj = d.createdAt.toDate();
+      const dateLabel = dateObj.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      });
 
-      d.type === "income"
-        ? income += d.amount
-        : expense += d.amount;
+      /* HEADER TANGGAL */
+      if (dateLabel !== lastDate) {
+        const header = document.createElement("div");
+        header.className = "date-group";
+        header.textContent = "📅 " + dateLabel;
+        historyEl.appendChild(header);
+        lastDate = dateLabel;
+      }
+
+      const li = document.createElement("li");
+      const isIncome = d.type === "income";
+
+      isIncome ? income += d.amount : expense += d.amount;
 
       li.innerHTML = `
-        <div>
-          <div>${date}</div>
-          <small>${d.note || "-"}</small>
+        <div class="tx-left">
+          <div class="tx-note">${d.note || "-"}</div>
         </div>
-        <div class="amount ${d.type === "income" ? "positive" : "negative"}">
-          ${d.type === "income" ? "+" : "-"}${rupiah(d.amount)}
-          <button class="delete">✕</button>
+
+        <div class="tx-right">
+          <div class="tx-amount ${isIncome ? "positive" : "negative"}">
+            ${isIncome ? "+" : "-"}${rupiah(d.amount)}
+          </div>
+          <button class="tx-delete">Hapus</button>
         </div>
       `;
 
-      li.querySelector(".delete").onclick = async () => {
+      li.querySelector(".tx-delete").onclick = async () => {
         await deleteDoc(doc(db, "transactions", d.id));
       };
 
@@ -131,7 +154,7 @@ function renderUI() {
   renderChart(income, expense);
 }
 
-// ===== INSIGHT =====
+/* ===== INSIGHT ===== */
 function renderInsight(income, expense, saldo) {
   let text = "";
   let cls = "";
@@ -156,7 +179,7 @@ function renderInsight(income, expense, saldo) {
   insightBox.className = `insight ${cls}`;
 }
 
-// ===== TARGET =====
+/* ===== TARGET ===== */
 function renderTarget(saldo) {
   const target = Number(targetInput.value);
   if (!target) return;
@@ -166,7 +189,7 @@ function renderTarget(saldo) {
   progressText.textContent = `${rupiah(saldo)} / ${rupiah(target)}`;
 }
 
-// ===== CHART =====
+/* ===== CHART ===== */
 function renderChart(income, expense) {
   if (chart) chart.destroy();
 
@@ -174,9 +197,11 @@ function renderChart(income, expense) {
     type: "doughnut",
     data: {
       labels: ["Pemasukan", "Pengeluaran"],
-      datasets: [{
-        data: [income, expense]
-      }]
+      datasets: [
+        {
+          data: [income, expense]
+        }
+      ]
     }
   });
 }

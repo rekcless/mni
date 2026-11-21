@@ -290,7 +290,7 @@
       <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
       <span></span><button type="button" data-k="0">0</button><button type="button" class="k-del" data-k="del" aria-label="Hapus">⌫</button>
     </div>
-    <p class="lock-note">PIN tersimpan di perangkat ini.</p>
+    <p class="lock-note">Hanya untuk pemakaian pribadi.</p>
   </div>
 </div>
 <div class="wrap">
@@ -1091,31 +1091,22 @@ function sha256(msg) {
   return H.map(x => (x >>> 0).toString(16).padStart(8, "0")).join("");
 }
 
-const PIN_KEY = "ck-pin-v1", FAIL_KEY = "ck-pin-fail-v1", SESSION_KEY = "ck-unlocked-v1", PIN_LEN = 6;
+/* PIN permanen (hash SHA-256 + salt). Untuk mengganti PIN, ganti nilai salt dan hash di bawah. */
+const PIN_REC = { salt: "ffccfe5dacd8378fe66213d9c9126980", hash: "eb9f194a64a018c7c2d81b86f816babe036a1299bbb3f055de079ed4cb9824a2" };
+const FAIL_KEY = "ck-pin-fail-v1", SESSION_KEY = "ck-unlocked-v1", PIN_LEN = 6;
 const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
   del(k) { try { localStorage.removeItem(k); } catch (e) {} }
 };
-const randSalt = () => {
-  const a = new Uint8Array(16);
-  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a);
-  else for (let i = 0; i < 16; i++) a[i] = Math.floor(Math.random() * 256);
-  return Array.from(a, b => b.toString(16).padStart(2, "0")).join("");
-};
 const hashPin = (pin, salt) => { let h = salt + ":" + pin; for (let i = 0; i < 1000; i++) h = sha256(h + salt); return h; };
 
-let appStarted = false, lockMode = "enter", entry = "", firstPin = "", countdownTimer = null;
+let appStarted = false, entry = "", countdownTimer = null;
 
 function setMsg(t) { $("lockMsg").textContent = t || ""; }
 function paintLock() {
-  const text = {
-    create:  ["Buat PIN", `Pilih ${PIN_LEN} angka untuk mengunci aplikasi ini.`],
-    confirm: ["Ulangi PIN", "Masukkan PIN yang sama sekali lagi."],
-    enter:   ["Masukkan PIN", "Halaman ini dikunci."]
-  }[lockMode];
-  $("lockTitle").textContent = text[0];
-  $("lockSub").textContent = text[1];
+  $("lockTitle").textContent = "Masukkan PIN";
+  $("lockSub").textContent = "Halaman ini dikunci.";
   $("pinDots").querySelectorAll("i").forEach((d, i) => d.classList.toggle("on", i < entry.length));
 }
 function shake(msg) {
@@ -1144,8 +1135,7 @@ function checkLockout() {
 function showLock() {
   $("lockView").classList.remove("hidden");
   document.body.classList.add("is-locked");
-  lockMode = store.get(PIN_KEY) ? "enter" : "create";
-  entry = ""; firstPin = "";
+  entry = "";
   setMsg("");
   paintLock();
   checkLockout();
@@ -1160,23 +1150,7 @@ function unlockApp() {
 }
 
 function submitPin() {
-  if (lockMode === "create") {
-    firstPin = entry; entry = ""; lockMode = "confirm"; setMsg(""); paintLock(); return;
-  }
-  if (lockMode === "confirm") {
-    if (entry === firstPin) {
-      const salt = randSalt();
-      store.set(PIN_KEY, { salt, hash: hashPin(entry, salt) });
-      store.del(FAIL_KEY);
-      unlockApp();
-    } else {
-      lockMode = "create"; firstPin = ""; entry = ""; paintLock();
-      shake("PIN tidak sama. Buat ulang.");
-    }
-    return;
-  }
-  const rec = store.get(PIN_KEY);
-  if (rec && hashPin(entry, rec.salt) === rec.hash) { store.del(FAIL_KEY); unlockApp(); return; }
+  if (hashPin(entry, PIN_REC.salt) === PIN_REC.hash) { store.del(FAIL_KEY); unlockApp(); return; }
 
   const f = store.get(FAIL_KEY) || { count: 0, until: 0 };
   f.count += 1;
@@ -1208,7 +1182,8 @@ function initLock() {
   if (!configured) return;
   let ok = false;
   try { ok = sessionStorage.getItem(SESSION_KEY) === "1"; } catch (e) {}
-  if (ok && store.get(PIN_KEY)) unlockApp(); else showLock();
+  store.del("ck-pin-v1"); // sisa PIN lama (versi sebelumnya) tidak dipakai lagi
+  if (ok) unlockApp(); else showLock();
 }
 
 /* ---------- Mulai ---------- */
